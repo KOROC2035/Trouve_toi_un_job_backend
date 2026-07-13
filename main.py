@@ -18,7 +18,7 @@ app = FastAPI(title="API Trouve toi un job", version="1.0")
 # Configuration des CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], # Le port par défaut de Vite/React
+    allow_origins=["http://localhost:5173", "https://trouve-toi-un-job-frontend.vercel.app"], # Le port par défaut de Vite/React
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
