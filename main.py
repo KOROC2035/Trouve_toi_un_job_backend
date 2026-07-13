@@ -15,10 +15,15 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Trouve toi un job", version="1.0")
 
+origins = [
+    "http://localhost:5173", # On garde ça pour que ça marche toujours quand tu codes sur ta machine
+    "https://trouve-toi-un-job-frontend.vercel.app", # <-- AJOUTE CETTE LIGNE EXACTEMENT (sans le / à la fin)
+]
+
 # Configuration des CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://trouve-toi-un-job-frontend.vercel.app"], # Le port par défaut de Vite/React
+    allow_origins=origins, # Le port par défaut de Vite/React
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
