@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, Numeric, ForeignKey, Enum as SQLEnum, DateTime
+from sqlalchemy import Column, String, Text, Numeric, ForeignKey, Enum as SQLEnum, DateTime, Boolean, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -22,13 +22,18 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String, unique=True, index=True, nullable=False)
+    phone_number = Column(String, unique=True, index=True, nullable=False) # Remplace l'email
     password_hash = Column(String, nullable=False)
-    first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
+    first_name = Column(String, nullable=False)
+    age = Column(Integer, nullable=False) # Nouveau champ
+    location = Column(String, nullable=False) # Nouveau champ
     role = Column(SQLEnum(RoleEnum), default=RoleEnum.client)
     bio = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    profile_photo = Column(String, nullable=True)
+    company_photo = Column(String, nullable=True)
+    specialty = Column(String, nullable=True)
 
     # Relation : Un utilisateur peut poster plusieurs jobs
     jobs = relationship("Job", back_populates="owner")
@@ -55,6 +60,7 @@ class Job(Base):
     location = Column(String, nullable=False)
     status = Column(SQLEnum(JobStatusEnum), default=JobStatusEnum.open)
     created_at = Column(DateTime, default=datetime.utcnow)
+    availability = Column(String)
 
     # Relation : Le job appartient à un utilisateur
     owner = relationship("User", back_populates="jobs")
@@ -102,3 +108,32 @@ class Review(Base):
     # Comme on a deux clés étrangères vers la même table User, il faut le préciser à SQLAlchemy
     reviewer = relationship("User", foreign_keys=[reviewer_id])
     reviewee = relationship("User", foreign_keys=[reviewee_id])
+    
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), nullable=False)
+    client_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relations
+    job = relationship("Job")
+    client = relationship("User", foreign_keys=[client_id])
+    provider = relationship("User", foreign_keys=[provider_id])
+    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=False)
+    sender_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    is_read = Column(Boolean, default=False)
+
+    # Relations
+    conversation = relationship("Conversation", back_populates="messages")
+    sender = relationship("User")

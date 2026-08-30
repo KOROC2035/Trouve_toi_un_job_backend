@@ -41,16 +41,16 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        # Décoder le token pour récupérer l'email
+        # Décoder le token pour récupérer le numéro de téléphone
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        phone_number: str = payload.get("sub")
+        if phone_number is None:
             raise credentials_exception
     except jwt.PyJWTError:
         raise credentials_exception
         
-    # Chercher l'utilisateur dans la base de données
-    user = db.query(models.User).filter(models.User.email == email).first()
+    # Chercher l'utilisateur dans la base de données via son numéro
+    user = db.query(models.User).filter(models.User.phone_number == phone_number).first()
     if user is None:
         raise credentials_exception
     return user
